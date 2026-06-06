@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel — SiBawang</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,700;1,600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --primary:#1e293b;--accent:#3b82f6;--accent2:#0ea5e9;
+      --green:#22c55e;--red:#ef4444;--amber:#f59e0b;
+      --white:#fff;--gray:#f1f5f9;--muted:#64748b;--text:#0f172a;
+      --shadow:rgba(15,23,42,.1);--sidebar:260px;--radius:14px;
+    }
+    html,body{height:100%;font-family:'Plus Jakarta Sans',sans-serif;background:#f8fafc;color:var(--text)}
+
+    /* ── Login Screen ── */
+    .login-screen{
+      position:fixed;inset:0;z-index:9999;
+      background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#0f2744 100%);
+      display:flex;align-items:center;justify-content:center;
+    }
+    .login-box{
+      background:#fff;border-radius:24px;padding:48px 44px;width:420px;
+      box-shadow:0 24px 80px rgba(0,0,0,.3);text-align:center;
+    }
+    .login-box .logo{font-size:48px;margin-bottom:8px}
+    .login-box h2{font-family:'Lora',serif;font-size:26px;color:var(--text);margin-bottom:4px}
+    .login-box p{font-size:13px;color:var(--muted);margin-bottom:32px}
+    .login-field{
+      text-align:left;margin-bottom:16px;
+    }
+    .login-field label{font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:6px;letter-spacing:.3px}
+    .login-field input{
+      width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:10px;
+      font-size:14px;font-family:inherit;outline:none;
+      transition:border-color .25s,box-shadow .25s;
+    }
+    .login-field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+    .login-err{font-size:12px;color:var(--red);margin-top:-8px;margin-bottom:8px;display:none}
+    .btn-login-admin{
+      width:100%;padding:13px;background:linear-gradient(135deg,#1e3a5f,#3b82f6);
+      color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;
+      cursor:pointer;transition:transform .2s,box-shadow .2s;margin-top:8px;
+    }
+    .btn-login-admin:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(59,130,246,.3)}
+    .login-hint{font-size:11px;color:#94a3b8;margin-top:16px}
+
+    /* ── Sidebar ── */
+    .sidebar{
+      position:fixed;top:0;left:0;height:100vh;width:var(--sidebar);
+      background:linear-gradient(180deg,#0f172a 0%,#1e293b 60%,#162032 100%);
+      display:flex;flex-direction:column;z-index:100;
+      box-shadow:4px 0 24px rgba(0,0,0,.2);
+    }
+    .sidebar-logo{padding:26px 22px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
+    .sidebar-logo .logo-icon{font-size:26px;margin-bottom:4px}
+    .sidebar-logo h2{font-family:'Lora',serif;font-size:18px;color:#fff;font-weight:700}
+    .sidebar-logo span{font-size:10px;color:rgba(255,255,255,.4);letter-spacing:1.5px;text-transform:uppercase}
+    .admin-badge{
+      margin:12px 22px;padding:8px 14px;border-radius:8px;
+      background:linear-gradient(135deg,rgba(59,130,246,.2),rgba(14,165,233,.15));
+      border:1px solid rgba(59,130,246,.3);
+      color:#93c5fd;font-size:12px;font-weight:600;
+      display:flex;align-items:center;gap:8px;
+    }
+    .nav{flex:1;padding:12px 10px;overflow-y:auto}
+    .nav-label{font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,.3);padding:8px 12px 4px;margin-top:8px}
+    .nav-item{
+      display:flex;align-items:center;gap:12px;
+      padding:11px 14px;border-radius:10px;
+      color:rgba(255,255,255,.65);font-size:13px;font-weight:500;
+      cursor:pointer;transition:all .25s;margin-bottom:2px;
+      border:none;background:transparent;width:100%;text-align:left;
+    }
+    .nav-item i{width:16px;text-align:center;font-size:14px;color:rgba(255,255,255,.4);transition:color .25s}
+    .nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
+    .nav-item:hover i{color:#60a5fa}
+    .nav-item.active{background:linear-gradient(135deg,rgba(59,130,246,.2),rgba(14,165,233,.1));color:#fff;font-weight:600}
+    .nav-item.active i{color:#60a5fa}
+    .sidebar-footer{padding:14px 22px;border-top:1px solid rgba(255,255,255,.08)}
+    .btn-logout{display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;border-radius:8px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:rgba(252,165,165,.85);font-size:12.5px;font-weight:500;cursor:pointer;transition:all .25s}
+    .btn-logout:hover{background:rgba(239,68,68,.22);color:#fff}
+
+    /* ── Main ── */
+    .main{margin-left:var(--sidebar);min-height:100vh;display:flex;flex-direction:column}
+    .topbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 8px var(--shadow)}
+    .topbar-left h1{font-size:19px;font-weight:700}
+    .topbar-left p{font-size:12px;color:var(--muted);margin-top:1px}
+    .topbar-right{display:flex;align-items:center;gap:10px}
+    .topbar-badge{background:#eff6ff;color:#2563eb;font-size:11px;font-weight:700;padding:5px 14px;border-radius:20px;border:1px solid #bfdbfe}
+    .content{flex:1;padding:28px;max-width:1200px}
+
+    /* ── Sections ── */
+    .section{display:none;animation:fadeIn .35s ease}
+    .section.active{display:block}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+    /* ── Stats ── */
+    .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:24px}
+    .stat-card{background:#fff;border-radius:var(--radius);padding:20px 16px;border:1px solid #e2e8f0;box-shadow:0 1px 6px var(--shadow);transition:transform .2s,box-shadow .2s}
+    .stat-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px var(--shadow)}
+    .stat-num{font-size:28px;font-weight:800;color:var(--text);margin-bottom:2px}
+    .stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+    .stat-icon2{font-size:26px;margin-bottom:8px}
+
+    /* ── Section header ── */
+    .sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+    .sec-header-left{display:flex;align-items:center;gap:10px}
+    .sec-icon{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#1e3a5f,#3b82f6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
+
+    /* ── Table ── */
+    .table-wrap{background:#fff;border-radius:var(--radius);overflow:hidden;border:1px solid #e2e8f0;box-shadow:0 1px 6px var(--shadow);margin-bottom:24px}
+    table{width:100%;border-collapse:collapse}
+    thead th{background:#f8fafc;padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid #e2e8f0}
+    tbody td{padding:12px 16px;font-size:13.5px;border-top:1px solid #f1f5f9}
+    tbody tr:hover{background:#f8fafc}
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+    .badge.green{background:#dcfce7;color:#16a34a}
+    .badge.blue{background:#dbeafe;color:#2563eb}
+    .badge.amber{background:#fef3c7;color:#d97706}
+    .badge.red{background:#fee2e2;color:#dc2626}
+    .btn-icon{border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;transition:all .2s}
+    .btn-icon.del{background:#fee2e2;color:#dc2626}
+    .btn-icon.del:hover{background:#fca5a5}
+    .btn-icon.view{background:#eff6ff;color:#2563eb}
+    .btn-icon.view:hover{background:#bfdbfe}
+    .btn-primary{background:linear-gradient(135deg,#1e3a5f,#3b82f6);color:#fff;border:none;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:transform .2s,box-shadow .2s}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(59,130,246,.3)}
+
+    /* ── Form ── */
+    .form-card{background:#fff;border-radius:var(--radius);padding:28px;border:1px solid #e2e8f0;box-shadow:0 1px 6px var(--shadow);margin-bottom:24px;max-width:700px}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+    .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+    .form-group label{font-size:12px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.4px}
+    .form-group input,.form-group select,.form-group textarea{padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13.5px;font-family:inherit;color:var(--text);outline:none;transition:border-color .2s}
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+    .form-group textarea{resize:vertical;min-height:90px;line-height:1.6}
+
+    /* ── Modal ── */
+    .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:500;display:none;align-items:center;justify-content:center}
+    .modal-overlay.open{display:flex}
+    .modal{background:#fff;border-radius:16px;padding:32px;width:520px;max-height:80vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.2)}
+    .modal h3{font-size:18px;font-weight:700;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #e2e8f0}
+    .modal-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)}
+
+    /* ── Summary cards ── */
+    .summary-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px}
+    .summary-card{background:#fff;border-radius:var(--radius);padding:20px;border:1px solid #e2e8f0;box-shadow:0 1px 6px var(--shadow)}
+    .summary-card h4{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+    .summary-card p{font-size:22px;font-weight:800}
+
+    ::-webkit-scrollbar{width:5px}
+    ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+  </style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="logo">🔐</div>
+    <h2>Admin Panel</h2>
+    <p>Masuk sebagai administrator SiBawang</p>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="adminUser" placeholder="Masukkan username" onkeydown="if(event.key==='Enter')adminLogin()"/>
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="adminPass" placeholder="Masukkan password" onkeydown="if(event.key==='Enter')adminLogin()"/>
+    </div>
+    <p class="login-err" id="loginErr">Username atau password salah!</p>
+    <button class="btn-login-admin" onclick="adminLogin()"><i class="fa-solid fa-shield-halved"></i> Masuk sebagai Admin</button>
+    <p class="login-hint">Default: admin / admin123 &nbsp;|&nbsp; <a href="index.html" style="color:#60a5fa">← Kembali</a></p>
+  </div>
+</div>
+
+<!-- Dashboard (hidden until login) -->
+<div id="appShell" style="display:none">
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🧅</div>
+    <h2>SiBawang</h2>
+    <span>Admin Panel</span>
+  </div>
+  <div class="admin-badge"><i class="fa-solid fa-shield-halved"></i> Administrator</div>
+  <nav class="nav">
+    <div class="nav-label">Manajemen</div>
+    <button class="nav-item active" data-sec="dashboard" onclick="showSec('dashboard',this)"><i class="fa-solid fa-gauge-high"></i> Dashboard</button>
+    <button class="nav-item" data-sec="pengguna" onclick="showSec('pengguna',this)"><i class="fa-solid fa-users"></i> Kelola Pengguna</button>
+    <button class="nav-item" data-sec="budidaya" onclick="showSec('budidaya',this)"><i class="fa-solid fa-book-open"></i> Kelola Budidaya</button>
+    <button class="nav-item" data-sec="lahan" onclick="showSec('lahan',this)"><i class="fa-solid fa-map-location-dot"></i> Data Lahan & Panen</button>
+    <button class="nav-item" data-sec="konsultasi" onclick="showSec('konsultasi',this)"><i class="fa-solid fa-comments"></i> Kelola Konsultasi</button>
+    <button class="nav-item" data-sec="sistem" onclick="showSec('sistem',this)"><i class="fa-solid fa-gear"></i> Kelola Sistem</button>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="btn-logout" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 id="topTitle">Dashboard Admin</h1>
+      <p id="topSub">Ringkasan sistem SiBawang</p>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-badge"><i class="fa-solid fa-circle" style="color:#22c55e;font-size:8px"></i> Admin Online</span>
+      <div style="font-size:12px;color:var(--muted);background:#f8fafc;padding:5px 12px;border-radius:20px;border:1px solid #e2e8f0" id="adminDate"></div>
+    </div>
+  </div>
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <section class="section active" id="sec-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-icon2">👨‍🌾</div><div class="stat-num" id="st-petani">0</div><div class="stat-label">Total Petani</div></div>
+        <div class="stat-card"><div class="stat-icon2">🌱</div><div class="stat-num" id="st-lahan">0</div><div class="stat-label">Total Lahan</div></div>
+        <div class="stat-card"><div class="stat-icon2">🧅</div><div class="stat-num" id="st-panen">0</div><div class="stat-label">Data Panen</div></div>
+        <div class="stat-card"><div class="stat-icon2">💬</div><div class="stat-num" id="st-konsul">0</div><div class="stat-label">Konsultasi</div></div>
+        <div class="stat-card"><div class="stat-icon2">📰</div><div class="stat-num" id="st-artikel">0</div><div class="stat-label">Artikel</div></div>
+      </div>
+      <div class="summary-row">
+        <div class="summary-card"><h4>Total Produksi</h4><p id="totalProduksi" style="color:var(--green)">0 kg</p></div>
+        <div class="summary-card"><h4>Petani Terdaftar</h4><p id="totalPetani" style="color:var(--accent)">0 orang</p></div>
+        <div class="summary-card"><h4>Artikel Aktif</h4><p id="totalArtikel" style="color:var(--amber)">0 artikel</p></div>
+      </div>
+      <div class="sec-header"><div class="sec-header-left"><div class="sec-icon"><i class="fa-solid fa-users"></i></div><h2 style="font-size:17px;font-weight:700">Petani Terdaftar</h2></div></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Nama</th><th>Email</th><th>Tgl Daftar</th><th>Lahan</th><th>Panen</th><th>Status</th></tr></thead>
+        <tbody id="dashUserTable"><tr><td colspan="6" style="text-align:center;padding:24px;color:#999">Tidak ada pengguna</td></tr></tbody></table>
+      </div>
+    </section>
+
+    <!-- PENGGUNA -->
+    <section class="section" id="sec-pengguna">
+      <div class="sec-header">
+        <div class="sec-header-left"><div class="sec-icon"><i class="fa-solid fa-users"></i></div><h2 style="font-size:17px;font-weight:700">Kelola Pengguna (Petani)</h2></div>
+        <button class="btn-primary" onclick="openModalTambahUser()"><i class="fa-solid fa-plus"></i> Tambah Petani</button>
+      </div>
+      <div class="table-wrap">
+        <table><thead><tr><th>ID</th><th>Nama</th><th>Email</th><th>Password</th><th>Lahan</th><th>Panen</th><th>Aksi</th></tr></thead>
+        <tbody id="userTable"><tr><td colspan="7" style="text-align:center;padding:24px;color:#999">Tidak ada pengguna</td></tr></tbody></table>
+      </div>
+    </section>
+
+    <!-- BUDIDAYA -->
+    <section class="section" id="sec-budidaya">
+      <div class="sec-header">
+        <div class="sec-header-left"><div class="sec-icon"><i class="fa-solid fa-book-open"></i></div><h2 style="font-size:17px;font-weight:700">Kelola Informasi Budidaya</h2></div>
+        <button class="btn-primary" onclick="openModalBudidaya()"><i class="fa-solid fa-plus"></i> Tambah Artikel</button>
+      </div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Judul</th><th>Kategori</th><th>Tgl Dibuat</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody id="budidayaTable"></tbody></table>
+      </div>
+    </section>
+
+    <!-- LAHAN PANEN -->
+    <section class="section" id="sec-lahan">
+      <div class="sec-header"><div class="sec-header-left"><div class="sec-icon"><i class="fa-solid fa-map-location-dot"></i></div><h2 style="font-size:17px;font-weight:700">Data Lahan & Panen Seluruh Petani</h2></div></div>
+      <div class="summary-row" id="lahanSummary"></div>
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:12px">📍 Semua Data Lahan</h3>
+      <div class="table-wrap">
+        <table><thead><tr><th>Petani</th><th>Nama Lahan</th><th>Luas (are)</th><th>Lokasi</th><th>Varietas</th><th>Tgl Tanam</th></tr></thead>
+        <tbody id="allLahanTable"><tr><td colspan="6" style="text-align:center;padding:24px;color:#999">Belum ada data</td></tr></tbody></table>
+      </div>
+      <h3 style="font-size:15px;font-weight:700;margin:20px 0 12px">🧅 Semua Data Panen</h3>
+      <div class="table-wrap">
+        <table><thead><tr><th>Petani</th><th>Lahan</th><th>Tgl Panen</th><th>Hasil (kg)</th><th>Harga/kg</th><th>Kualitas</th></tr></thead>
+        <tbody id="allPanenTable"><tr><td colspan="6" style="text-align:center;padding:24px;color:#999">Belum ada data</td></tr></tbody></table>
+      </div>
+    </section>
+
+    <!-- KONSULTASI -->
+    <section class="section" id="sec-konsultasi">
+      <div class="sec-header"><div class="sec-header-left"><div class="sec-icon"><i class="fa-solid fa-comments"></i></div><h2 style="font-size:17px;font-weight:700">Kelola Konsultasi Petani</h2></div></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Petani</th><th>Pertanyaan</th><th>Tanggal</th><th>Status</th></tr></thead>
+        <tbody id="konsulTable"><tr><td colspan="4" style="text-align:center;padding:24px;color:#999">Belum ada konsultasi</td></tr></tbody></table>
+      </div>
+    </section>
+
+    <!-- SISTEM -->
+    <section class="section" id="sec-sistem">
+      <div class="sec-header"><div class="sec-header-left"><div class="sec-icon"><i class="fa-solid fa-gear"></i></div><h2 style="font-size:17px;font-weight:700">Kelola Sistem</h2></div></div>
+      <div class="form-card">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:16px">⚙️ Pengaturan Sistem</h3>
+        <div class="form-group"><label>Nama Aplikasi</label><input type="text" id="sysName" value="SiBawang — Sistem Informasi Budidaya Bawang Merah"/></div>
+        <div class="form-group"><label>Email Admin</label><input type="email" id="sysEmail" value="admin@sibawang.id"/></div>
+        <div class="form-group"><label>Versi Sistem</label><input type="text" id="sysVer" value="1.0.0" readonly style="background:#f8fafc"/></div>
+        <div class="form-group"><label>Deskripsi</label><textarea id="sysDesc">Platform terpadu informasi dan manajemen budidaya bawang merah.</textarea></div>
+        <button class="btn-primary" onclick="simpanSistem()"><i class="fa-solid fa-floppy-disk"></i> Simpan Pengaturan</button>
+      </div>
+      <div class="form-card" style="border-left:4px solid var(--red)">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:8px;color:var(--red)">⚠️ Zona Berbahaya</h3>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Tindakan berikut bersifat permanen dan tidak dapat dibatalkan.</p>
+        <button class="btn-icon del" onclick="resetAllData()" style="padding:10px 20px;font-size:13px"><i class="fa-solid fa-trash"></i> Reset Semua Data Petani</button>
+      </div>
+    </section>
+
+  </div>
+</main>
+</div><!-- /appShell -->
+
+<!-- Modal Tambah User -->
+<div class="modal-overlay" id="modalUser">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalUser')">×</button>
+    <h3>Tambah Petani Baru</h3>
+    <div class="form-group"><label>Nama Lengkap</label><input type="text" id="newName" placeholder="Nama petani"/></div>
+    <div class="form-group"><label>Email</label><input type="email" id="newEmail" placeholder="email@contoh.com"/></div>
+    <div class="form-group"><label>Password</label><input type="password" id="newPwd" placeholder="Min. 6 karakter"/></div>
+    <button class="btn-primary" onclick="tambahUser()"><i class="fa-solid fa-plus"></i> Tambah</button>
+  </div>
+</div>
+
+<!-- Modal Artikel -->
+<div class="modal-overlay" id="modalBudidaya">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalBudidaya')">×</button>
+    <h3>Tambah Artikel Budidaya</h3>
+    <div class="form-group"><label>Judul Artikel</label><input type="text" id="artJudul" placeholder="Judul artikel"/></div>
+    <div class="form-group"><label>Kategori</label>
+      <select id="artKategori"><option>Persiapan</option><option>Penanaman</option><option>Pemupukan</option><option>Irigasi</option><option>Hama & Penyakit</option><option>Panen</option><option>Pasca Panen</option></select>
+    </div>
+    <div class="form-group"><label>Isi Artikel</label><textarea id="artIsi" placeholder="Tulis isi artikel..."></textarea></div>
+    <div class="form-group"><label>Status</label>
+      <select id="artStatus"><option>Aktif</option><option>Draft</option></select>
+    </div>
+    <button class="btn-primary" onclick="tambahArtikel()"><i class="fa-solid fa-plus"></i> Tambah Artikel</button>
+  </div>
+</div>
+
+<script>
+// ── Admin Login ──
+function adminLogin() {
+  const u = document.getElementById('adminUser').value.trim();
+  const p = document.getElementById('adminPass').value.trim();
+  if (u === 'admin' && p === 'admin123') {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appShell').style.display = 'block';
+    sessionStorage.setItem('adminLoggedIn', '1');
+    initAdmin();
+  } else {
+    document.getElementById('loginErr').style.display = 'block';
+    setTimeout(() => document.getElementById('loginErr').style.display='none', 2500);
+  }
+}
+function adminLogout() {
+  if (confirm('Yakin ingin keluar?')) {
+    sessionStorage.removeItem('adminLoggedIn');
+    window.location.href = 'index.html';
+  }
+}
+// Auto restore session
+if (sessionStorage.getItem('adminLoggedIn') === '1') {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appShell').style.display = 'block';
+  initAdmin();
+}
+document.getElementById('adminDate').textContent = new Date().toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+
+// ── Section nav ──
+const titles = {dashboard:'Dashboard Admin',pengguna:'Kelola Pengguna',budidaya:'Kelola Budidaya',lahan:'Data Lahan & Panen',konsultasi:'Kelola Konsultasi',sistem:'Kelola Sistem'};
+const subs = {dashboard:'Ringkasan sistem SiBawang',pengguna:'Manajemen akun petani',budidaya:'Informasi & artikel budidaya',lahan:'Data seluruh lahan dan panen',konsultasi:'Pertanyaan dari petani',sistem:'Konfigurasi sistem'};
+function showSec(id, btn) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  document.getElementById('topTitle').textContent = titles[id];
+  document.getElementById('topSub').textContent = subs[id];
+  if(id==='lahan') renderAllData();
+  if(id==='konsultasi') renderKonsultasi();
+  if(id==='pengguna') renderUsers();
+  if(id==='budidaya') renderBudidaya();
+  if(id==='dashboard') initAdmin();
+}
+
+// ── Get all users ──
+function getAllUsers() { return JSON.parse(localStorage.getItem('users')) || []; }
+function getUserLahan(uid) { return JSON.parse(localStorage.getItem('lahan_'+uid)) || []; }
+function getUserPanen(uid) { return JSON.parse(localStorage.getItem('panen_'+uid)) || []; }
+function getUserKonsul(uid) { return JSON.parse(localStorage.getItem('konsul_'+uid)) || []; }
+function getArtikel() { return JSON.parse(localStorage.getItem('admin_artikel')) || getDefaultArtikel(); }
+function getDefaultArtikel() {
+  return [
+    {id:1,judul:'Teknik Pemilihan Bibit Bawang Merah Unggul',kategori:'Persiapan',tgl:'2025-01-10',status:'Aktif',isi:'Pilih umbi sehat berukuran 5–10 g...'},
+    {id:2,judul:'Jadwal Pemupukan Optimal 70 Hari',kategori:'Pemupukan',tgl:'2025-01-12',status:'Aktif',isi:'Pemupukan dasar dilakukan sebelum tanam...'},
+    {id:3,judul:'Pengendalian Hama Ulat Bawang',kategori:'Hama & Penyakit',tgl:'2025-01-15',status:'Aktif',isi:'Ulat bawang (Spodoptera exigua) adalah hama utama...'},
+  ];
+}
+
+// ── Init Dashboard ──
+function initAdmin() {
+  const users = getAllUsers();
+  let totalLahan=0, totalPanen=0, totalKonsul=0, totalKg=0;
+  users.forEach(u => {
+    totalLahan += getUserLahan(u.id).length;
+    const pan = getUserPanen(u.id);
+    totalPanen += pan.length;
+    totalKg += pan.reduce((s,x) => s+Number(x.hasil||0),0);
+    totalKonsul += getUserKonsul(u.id).length;
+  });
+  const art = getArtikel();
+  setText('st-petani', users.length);
+  setText('st-lahan', totalLahan);
+  setText('st-panen', totalPanen);
+  setText('st-konsul', totalKonsul);
+  setText('st-artikel', art.length);
+  setText('totalProduksi', totalKg.toLocaleString('id-ID')+' kg');
+  setText('totalPetani', users.length+' orang');
+  setText('totalArtikel', art.length+' artikel');
+  // Dashboard user table
+  const tb = document.getElementById('dashUserTable');
+  if (!users.length) { tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:#999">Tidak ada pengguna terdaftar</td></tr>'; return; }
+  tb.innerHTML = users.map(u=>`<tr>
+    <td><strong>${u.name}</strong></td><td>${u.email}</td>
+    <td>${new Date(u.id).toLocaleDateString('id-ID')}</td>
+    <td>${getUserLahan(u.id).length}</td>
+    <td>${getUserPanen(u.id).length}</td>
+    <td><span class="badge green">Aktif</span></td>
+  </tr>`).join('');
+}
+function setText(id, val) { const el=document.getElementById(id); if(el) el.textContent=val; }
+
+// ── Render Users ──
+function renderUsers() {
+  const users = getAllUsers();
+  const tb = document.getElementById('userTable');
+  if (!users.length) { tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;color:#999">Tidak ada pengguna</td></tr>'; return; }
+  tb.innerHTML = users.map(u=>`<tr>
+    <td style="font-size:11px;color:#999">#${String(u.id).slice(-4)}</td>
+    <td><strong>${u.name}</strong></td><td>${u.email}</td>
+    <td><span style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:11px">••••••</span></td>
+    <td>${getUserLahan(u.id).length} petak</td>
+    <td>${getUserPanen(u.id).length} entri</td>
+    <td><button class="btn-icon del" onclick="hapusUser(${u.id})"><i class="fa-solid fa-trash"></i> Hapus</button></td>
+  </tr>`).join('');
+}
+function hapusUser(id) {
+  if (!confirm('Hapus pengguna ini beserta semua datanya?')) return;
+  let users = getAllUsers().filter(u=>u.id!=id);
+  localStorage.setItem('users', JSON.stringify(users));
+  localStorage.removeItem('lahan_'+id);
+  localStorage.removeItem('panen_'+id);
+  localStorage.removeItem('konsul_'+id);
+  localStorage.removeItem('activity_'+id);
+  renderUsers(); initAdmin(); showToast('Pengguna berhasil dihapus');
+}
+function openModalTambahUser() { document.getElementById('modalUser').classList.add('open'); }
+function tambahUser() {
+  const name = document.getElementById('newName').value.trim();
+  const email = document.getElementById('newEmail').value.trim();
+  const pwd = document.getElementById('newPwd').value.trim();
+  if (!name||!email||!pwd) return alert('Semua field wajib diisi!');
+  if (pwd.length < 6) return alert('Password minimal 6 karakter!');
+  let users = getAllUsers();
+  if (users.find(u=>u.email===email)) return alert('Email sudah digunakan!');
+  users.push({id:Date.now(), name, email, password:pwd});
+  localStorage.setItem('users', JSON.stringify(users));
+  closeModal('modalUser');
+  document.getElementById('newName').value='';
+  document.getElementById('newEmail').value='';
+  document.getElementById('newPwd').value='';
+  renderUsers(); initAdmin(); showToast('Petani berhasil ditambahkan!');
+}
+
+// ── Budidaya ──
+function renderBudidaya() {
+  const art = getArtikel();
+  const tb = document.getElementById('budidayaTable');
+  tb.innerHTML = art.map(a=>`<tr>
+    <td><strong>${a.judul}</strong></td>
+    <td><span class="badge blue">${a.kategori}</span></td>
+    <td>${a.tgl}</td>
+    <td><span class="badge ${a.status==='Aktif'?'green':'amber'}">${a.status}</span></td>
+    <td><button class="btn-icon del" onclick="hapusArtikel(${a.id})"><i class="fa-solid fa-trash"></i></button></td>
+  </tr>`).join('');
+}
+function openModalBudidaya() { document.getElementById('modalBudidaya').classList.add('open'); }
+function tambahArtikel() {
+  const judul = document.getElementById('artJudul').value.trim();
+  const kategori = document.getElementById('artKategori').value;
+  const isi = document.getElementById('artIsi').value.trim();
+  const status = document.getElementById('artStatus').value;
+  if (!judul) return alert('Judul wajib diisi!');
+  const art = getArtikel();
+  art.push({id:Date.now(), judul, kategori, tgl: new Date().toISOString().split('T')[0], status, isi});
+  localStorage.setItem('admin_artikel', JSON.stringify(art));
+  closeModal('modalBudidaya');
+  document.getElementById('artJudul').value='';
+  document.getElementById('artIsi').value='';
+  renderBudidaya(); initAdmin(); showToast('Artikel berhasil ditambahkan!');
+}
+function hapusArtikel(id) {
+  if (!confirm('Hapus artikel ini?')) return;
+  const art = getArtikel().filter(a=>a.id!=id);
+  localStorage.setItem('admin_artikel', JSON.stringify(art));
+  renderBudidaya(); initAdmin(); showToast('Artikel dihapus');
+}
+
+// ── All Data ──
+function renderAllData() {
+  const users = getAllUsers();
+  let allLahan=[], allPanen=[], totalKg=0;
+  users.forEach(u => {
+    getUserLahan(u.id).forEach(l => allLahan.push({...l, petani: u.name}));
+    getUserPanen(u.id).forEach(p => { allPanen.push({...p, petani: u.name}); totalKg += Number(p.hasil||0); });
+  });
+  // Summary
+  const sum = document.getElementById('lahanSummary');
+  sum.innerHTML = `
+    <div class="summary-card"><h4>Total Petak</h4><p style="color:var(--accent)">${allLahan.length}</p></div>
+    <div class="summary-card"><h4>Total Data Panen</h4><p style="color:var(--green)">${allPanen.length}</p></div>
+    <div class="summary-card"><h4>Total Produksi</h4><p style="color:var(--amber)">${totalKg.toLocaleString('id-ID')} kg</p></div>
+  `;
+  const tl = document.getElementById('allLahanTable');
+  tl.innerHTML = allLahan.length ? allLahan.map(l=>`<tr><td>${l.petani}</td><td><strong>${l.nama}</strong></td><td>${l.luas}</td><td>${l.lokasi}</td><td>${l.varietas||'-'}</td><td>${l.tgl||'-'}</td></tr>`).join('') : '<tr><td colspan="6" style="text-align:center;padding:24px;color:#999">Belum ada data lahan</td></tr>';
+  const tp = document.getElementById('allPanenTable');
+  tp.innerHTML = allPanen.length ? allPanen.map(p=>`<tr><td>${p.petani}</td><td>${p.lahan}</td><td>${p.tgl||'-'}</td><td><strong>${Number(p.hasil||0).toLocaleString('id-ID')} kg</strong></td><td>${p.harga?'Rp '+Number(p.harga).toLocaleString('id-ID'):'-'}</td><td>${p.kualitas}</td></tr>`).join('') : '<tr><td colspan="6" style="text-align:center;padding:24px;color:#999">Belum ada data panen</td></tr>';
+}
+
+// ── Konsultasi ──
+function renderKonsultasi() {
+  const users = getAllUsers();
+  const rows = [];
+  users.forEach(u => {
+    getUserKonsul(u.id).forEach(k => rows.push({petani: u.name, ...k}));
+  });
+  const tb = document.getElementById('konsulTable');
+  if (!rows.length) { tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:#999">Belum ada konsultasi</td></tr>'; return; }
+  tb.innerHTML = rows.map(k=>`<tr><td><strong>${k.petani}</strong></td><td>${k.pertanyaan}</td><td>${k.tgl||'-'}</td><td><span class="badge green">Terjawab</span></td></tr>`).join('');
+}
+
+// ── Sistem ──
+function simpanSistem() { showToast('Pengaturan sistem berhasil disimpan!'); }
+function resetAllData() {
+  if (!confirm('PERHATIAN! Ini akan menghapus SEMUA data petani. Lanjutkan?')) return;
+  if (!confirm('Tindakan ini tidak dapat dibatalkan. Yakin?')) return;
+  const users = getAllUsers();
+  users.forEach(u => {
+    localStorage.removeItem('lahan_'+u.id);
+    localStorage.removeItem('panen_'+u.id);
+    localStorage.removeItem('konsul_'+u.id);
+    localStorage.removeItem('activity_'+u.id);
+  });
+  showToast('Semua data petani berhasil direset');
+  initAdmin();
+}
+
+// ── Modal helpers ──
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); }));
+
+// ── Toast ──
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  Object.assign(t.style,{position:'fixed',bottom:'28px',right:'28px',background:'#1e3a5f',color:'#fff',padding:'12px 22px',borderRadius:'10px',fontSize:'13px',fontWeight:'600',zIndex:'9999',boxShadow:'0 4px 18px rgba(30,58,95,.3)',opacity:'0',transition:'opacity .3s'});
+  document.body.appendChild(t);
+  requestAnimationFrame(()=>t.style.opacity='1');
+  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300)},2800);
+}
+</script>
+</body>
+</html>

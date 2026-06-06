@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard Petani — SiBawang</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,600;1,500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --g1:#1a6b3c;--g2:#27ae60;--g3:#52c97a;--g4:#a8e6bb;--g5:#e8f8ee;
+      --white:#ffffff;--gray:#f4f6f5;--text:#1c2e25;--muted:#6b8a75;
+      --shadow:rgba(26,107,60,.12);--radius:16px;
+      --sidebar:260px;
+    }
+    html,body{height:100%;font-family:'Plus Jakarta Sans',sans-serif;background:var(--g5);color:var(--text);overflow-x:hidden}
+
+    /* ── Sidebar ── */
+    .sidebar{
+      position:fixed;top:0;left:0;height:100vh;width:var(--sidebar);
+      background:linear-gradient(180deg,#0f4a28 0%,#1a6b3c 50%,#1e7d44 100%);
+      display:flex;flex-direction:column;z-index:100;
+      box-shadow:4px 0 24px rgba(0,0,0,.15);
+      transition:transform .35s cubic-bezier(.4,0,.2,1);
+    }
+    .sidebar-logo{
+      padding:28px 24px 20px;
+      border-bottom:1px solid rgba(255,255,255,.1);
+    }
+    .sidebar-logo .logo-icon{font-size:28px;margin-bottom:4px}
+    .sidebar-logo h2{font-family:'Lora',serif;font-size:20px;color:#fff;font-weight:600}
+    .sidebar-logo span{font-size:11px;color:rgba(255,255,255,.5);letter-spacing:1.5px;text-transform:uppercase}
+
+    .sidebar-user{
+      padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.1);
+      display:flex;align-items:center;gap:12px;
+    }
+    .avatar{
+      width:42px;height:42px;border-radius:50%;
+      background:linear-gradient(135deg,var(--g3),var(--g2));
+      display:flex;align-items:center;justify-content:center;
+      font-weight:700;color:#fff;font-size:16px;flex-shrink:0;
+    }
+    .user-info p{font-size:13px;font-weight:600;color:#fff}
+    .user-info span{font-size:11px;color:rgba(255,255,255,.5)}
+
+    .nav{flex:1;padding:16px 12px;overflow-y:auto}
+    .nav-label{font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,.35);padding:8px 12px 4px;margin-top:8px}
+    .nav-item{
+      display:flex;align-items:center;gap:12px;
+      padding:12px 14px;border-radius:12px;
+      color:rgba(255,255,255,.7);font-size:13.5px;font-weight:500;
+      cursor:pointer;transition:all .25s;margin-bottom:2px;
+      border:none;background:transparent;width:100%;text-align:left;
+    }
+    .nav-item i{width:18px;text-align:center;font-size:15px}
+    .nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+    .nav-item.active{background:rgba(255,255,255,.15);color:#fff;font-weight:600}
+    .nav-item.active i{color:var(--g3)}
+
+    .sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.1)}
+    .btn-logout{
+      display:flex;align-items:center;gap:10px;
+      width:100%;padding:10px 14px;border-radius:10px;
+      background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);
+      color:rgba(255,150,140,.9);font-size:13px;font-weight:500;
+      cursor:pointer;transition:all .25s;
+    }
+    .btn-logout:hover{background:rgba(231,76,60,.25);color:#fff}
+
+    /* ── Main ── */
+    .main{margin-left:var(--sidebar);min-height:100vh;display:flex;flex-direction:column}
+
+    .topbar{
+      background:#fff;border-bottom:1px solid rgba(26,107,60,.08);
+      padding:0 32px;height:68px;display:flex;align-items:center;justify-content:space-between;
+      position:sticky;top:0;z-index:50;box-shadow:0 2px 12px var(--shadow);
+    }
+    .topbar-left h1{font-size:20px;font-weight:700;color:var(--text)}
+    .topbar-left p{font-size:12px;color:var(--muted);margin-top:1px}
+    .topbar-right{display:flex;align-items:center;gap:12px}
+    .topbar-date{font-size:12px;color:var(--muted);background:var(--g5);padding:6px 14px;border-radius:20px}
+    .notif-btn{width:38px;height:38px;border-radius:50%;background:var(--g5);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--g1);font-size:16px;position:relative}
+    .notif-dot{position:absolute;top:7px;right:7px;width:8px;height:8px;border-radius:50%;background:var(--g2);border:2px solid #fff}
+
+    .content{flex:1;padding:32px;max-width:1200px}
+
+    /* ── Sections ── */
+    .section{display:none;animation:fadeIn .4s ease}
+    .section.active{display:block}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+    /* ── Welcome cards ── */
+    .welcome-banner{
+      background:linear-gradient(135deg,var(--g1) 0%,#27913d 60%,#1e7d44 100%);
+      border-radius:20px;padding:32px 36px;color:#fff;
+      display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:28px;overflow:hidden;position:relative;
+    }
+    .welcome-banner::before{
+      content:'🌿';position:absolute;right:160px;top:50%;transform:translateY(-50%);
+      font-size:80px;opacity:.08;pointer-events:none;
+    }
+    .welcome-banner h2{font-family:'Lora',serif;font-size:26px;margin-bottom:6px}
+    .welcome-banner p{font-size:14px;opacity:.8;max-width:400px}
+    .welcome-banner .cta{
+      background:#fff;color:var(--g1);border:none;padding:10px 22px;
+      border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;
+      margin-top:16px;transition:transform .2s;display:inline-block;
+    }
+    .welcome-banner .cta:hover{transform:scale(1.04)}
+    .banner-icon{font-size:64px;opacity:.9}
+
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:28px}
+    .stat-card{
+      background:#fff;border-radius:var(--radius);padding:22px 20px;
+      border:1px solid rgba(26,107,60,.08);
+      box-shadow:0 2px 12px var(--shadow);
+      display:flex;align-items:flex-start;gap:16px;
+      transition:transform .25s,box-shadow .25s;
+    }
+    .stat-card:hover{transform:translateY(-3px);box-shadow:0 8px 28px var(--shadow)}
+    .stat-icon{
+      width:50px;height:50px;border-radius:12px;flex-shrink:0;
+      display:flex;align-items:center;justify-content:center;font-size:22px;
+    }
+    .stat-icon.green{background:linear-gradient(135deg,#c8f7d8,#a0ecbc)}
+    .stat-icon.teal{background:linear-gradient(135deg,#c2f0eb,#8de3d4)}
+    .stat-icon.amber{background:linear-gradient(135deg,#ffedc2,#ffd98a)}
+    .stat-icon.blue{background:linear-gradient(135deg,#d4eaff,#a9d3ff)}
+    .stat-info p{font-size:12px;color:var(--muted);margin-bottom:4px}
+    .stat-info h3{font-size:22px;font-weight:800;color:var(--text)}
+    .stat-info small{font-size:11px;color:var(--g2)}
+
+    /* ── Section headers ── */
+    .sec-header{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+    .sec-header h2{font-size:20px;font-weight:700}
+    .sec-header .sec-icon{
+      width:38px;height:38px;border-radius:10px;
+      background:linear-gradient(135deg,var(--g2),var(--g1));
+      display:flex;align-items:center;justify-content:center;
+      color:#fff;font-size:16px;
+    }
+
+    /* ── Cards grid ── */
+    .info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:28px}
+    .info-card{
+      background:#fff;border-radius:var(--radius);overflow:hidden;
+      border:1px solid rgba(26,107,60,.07);
+      box-shadow:0 2px 12px var(--shadow);
+      transition:transform .25s,box-shadow .25s;cursor:pointer;
+    }
+    .info-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px var(--shadow)}
+    .info-card-img{
+      height:130px;background:linear-gradient(135deg,var(--g1),var(--g2));
+      display:flex;align-items:center;justify-content:center;font-size:48px;
+      position:relative;overflow:hidden;
+    }
+    .info-card-img::after{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(to bottom,transparent 50%,rgba(0,0,0,.2));
+    }
+    .info-card-body{padding:18px}
+    .info-card-tag{
+      display:inline-block;padding:3px 10px;border-radius:20px;
+      background:var(--g5);color:var(--g1);font-size:11px;font-weight:600;
+      margin-bottom:8px;
+    }
+    .info-card-body h3{font-size:15px;font-weight:700;margin-bottom:6px}
+    .info-card-body p{font-size:12px;color:var(--muted);line-height:1.6}
+
+    /* ── Forms ── */
+    .form-container{
+      background:#fff;border-radius:20px;padding:32px;
+      border:1px solid rgba(26,107,60,.08);box-shadow:0 4px 20px var(--shadow);
+      max-width:760px;
+    }
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+    .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:18px}
+    .form-group label{font-size:13px;font-weight:600;color:var(--text)}
+    .form-group input,.form-group select,.form-group textarea{
+      padding:11px 14px;border:1.5px solid #e0ebe4;border-radius:10px;
+      font-size:14px;font-family:inherit;color:var(--text);
+      background:#fafcfb;outline:none;transition:border-color .25s,box-shadow .25s;
+    }
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+      border-color:var(--g2);box-shadow:0 0 0 3px rgba(39,174,96,.12);background:#fff;
+    }
+    .form-group textarea{resize:vertical;min-height:100px;line-height:1.6}
+    .btn-submit{
+      background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;
+      border:none;padding:12px 28px;border-radius:10px;font-size:14px;
+      font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;
+      transition:transform .2s,box-shadow .2s;
+    }
+    .btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(26,107,60,.3)}
+
+    /* ── Tables ── */
+    .table-wrap{background:#fff;border-radius:var(--radius);overflow:hidden;border:1px solid rgba(26,107,60,.07);box-shadow:0 2px 12px var(--shadow)}
+    table{width:100%;border-collapse:collapse}
+    thead th{background:linear-gradient(135deg,#f0faf4,#e4f5ea);padding:13px 18px;text-align:left;font-size:12px;font-weight:700;color:var(--g1);text-transform:uppercase;letter-spacing:.8px}
+    tbody td{padding:13px 18px;font-size:13.5px;border-top:1px solid #f0f4f2}
+    tbody tr:hover{background:#f8fcf9}
+    .badge-status{display:inline-block;padding:3px 12px;border-radius:20px;font-size:11px;font-weight:600}
+    .badge-status.ok{background:#d4f4df;color:#1a6b3c}
+    .badge-status.warn{background:#fff3cd;color:#856404}
+
+    /* ── Konsultasi ── */
+    .chat-container{
+      background:#fff;border-radius:20px;border:1px solid rgba(26,107,60,.08);
+      box-shadow:0 4px 20px var(--shadow);overflow:hidden;max-width:760px;
+    }
+    .chat-header{
+      background:linear-gradient(135deg,var(--g1),var(--g2));
+      padding:20px 24px;color:#fff;display:flex;align-items:center;gap:14px;
+    }
+    .chat-header .bot-avatar{
+      width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);
+      display:flex;align-items:center;justify-content:center;font-size:20px;
+    }
+    .chat-header h3{font-size:16px;font-weight:700}
+    .chat-header p{font-size:12px;opacity:.8}
+    .chat-messages{
+      height:350px;overflow-y:auto;padding:20px;
+      display:flex;flex-direction:column;gap:12px;
+      background:#f8fcf9;
+    }
+    .msg{display:flex;gap:10px;align-items:flex-end}
+    .msg.user{flex-direction:row-reverse}
+    .msg-bubble{
+      max-width:75%;padding:12px 16px;border-radius:16px;
+      font-size:13.5px;line-height:1.6;
+    }
+    .msg.bot .msg-bubble{background:#fff;color:var(--text);border-bottom-left-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+    .msg.user .msg-bubble{background:var(--g1);color:#fff;border-bottom-right-radius:4px}
+    .msg-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+    .msg.bot .msg-avatar{background:var(--g4)}
+    .msg.user .msg-avatar{background:var(--g2);color:#fff}
+    .chat-input-area{
+      padding:16px 20px;border-top:1px solid #eef3f0;
+      display:flex;gap:10px;
+    }
+    .chat-input{
+      flex:1;padding:11px 16px;border:1.5px solid #e0ebe4;border-radius:24px;
+      font-size:13.5px;font-family:inherit;outline:none;
+      transition:border-color .25s;
+    }
+    .chat-input:focus{border-color:var(--g2)}
+    .chat-send{
+      width:44px;height:44px;border-radius:50%;
+      background:linear-gradient(135deg,var(--g1),var(--g2));
+      border:none;color:#fff;font-size:16px;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      transition:transform .2s;
+    }
+    .chat-send:hover{transform:scale(1.08)}
+
+    /* ── Pupuk grid ── */
+    .pupuk-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+    .pupuk-card{
+      background:#fff;border-radius:var(--radius);padding:22px;
+      border:1px solid rgba(26,107,60,.07);box-shadow:0 2px 12px var(--shadow);
+      display:flex;gap:16px;align-items:flex-start;
+    }
+    .pupuk-icon{
+      width:52px;height:52px;border-radius:12px;flex-shrink:0;
+      display:flex;align-items:center;justify-content:center;font-size:24px;
+    }
+    .pupuk-card h3{font-size:15px;font-weight:700;margin-bottom:6px}
+    .pupuk-card p{font-size:13px;color:var(--muted);line-height:1.6}
+    .pupuk-card .dosage{
+      display:inline-block;margin-top:10px;padding:4px 12px;
+      border-radius:20px;background:var(--g5);color:var(--g1);
+      font-size:11px;font-weight:700;
+    }
+
+    /* ── Panen Table ── */
+    .empty-state{
+      text-align:center;padding:60px 20px;color:var(--muted);
+    }
+    .empty-state .empty-icon{font-size:56px;margin-bottom:12px;opacity:.4}
+    .empty-state p{font-size:14px}
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar{width:6px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:#b5d6c0;border-radius:3px}
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🧅</div>
+    <h2>SiBawang</h2>
+    <span>Portal Petani</span>
+  </div>
+  <div class="sidebar-user">
+    <div class="avatar" id="avatarInitial">P</div>
+    <div class="user-info">
+      <p id="sidebarName">Petani</p>
+      <span id="sidebarEmail">petani@email.com</span>
+    </div>
+  </div>
+  <nav class="nav">
+    <div class="nav-label">Menu Utama</div>
+    <button class="nav-item active" data-section="dashboard" onclick="showSection('dashboard',this)">
+      <i class="fa-solid fa-gauge-high"></i> Dashboard
+    </button>
+    <button class="nav-item" data-section="budidaya" onclick="showSection('budidaya',this)">
+      <i class="fa-solid fa-book-open"></i> Informasi Budidaya
+    </button>
+    <button class="nav-item" data-section="lahan" onclick="showSection('lahan',this)">
+      <i class="fa-solid fa-map-location-dot"></i> Input Data Lahan
+    </button>
+    <button class="nav-item" data-section="panen" onclick="showSection('panen',this)">
+      <i class="fa-solid fa-basket-shopping"></i> Catat Hasil Panen
+    </button>
+    <button class="nav-item" data-section="pupuk" onclick="showSection('pupuk',this)">
+      <i class="fa-solid fa-flask"></i> Pupuk & Hama
+    </button>
+    <button class="nav-item" data-section="konsultasi" onclick="showSection('konsultasi',this)">
+      <i class="fa-solid fa-comments"></i> Konsultasi
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="btn-logout" onclick="logout()">
+      <i class="fa-solid fa-right-from-bracket"></i> Keluar
+    </button>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 id="topbarTitle">Dashboard</h1>
+      <p id="topbarSub">Selamat datang di portal petani SiBawang</p>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-date" id="dateDisplay"></div>
+      <button class="notif-btn"><i class="fa-solid fa-bell"></i><span class="notif-dot"></span></button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <section class="section active" id="sec-dashboard">
+      <div class="welcome-banner">
+        <div>
+          <h2>Halo, <span id="welcomeName">Petani</span>! 👋</h2>
+          <p>Pantau ladang bawang merah Anda, catat panen, dan konsultasikan masalah budidaya hari ini.</p>
+          <button class="cta" onclick="showSection('lahan',document.querySelector('[data-section=lahan]'))">+ Tambah Data Lahan</button>
+        </div>
+        <div class="banner-icon">🌾</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon green">🌱</div>
+          <div class="stat-info"><p>Total Lahan</p><h3 id="statLahan">0</h3><small>petak terdaftar</small></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon teal">🧅</div>
+          <div class="stat-info"><p>Total Panen</p><h3 id="statPanen">0</h3><small>entri tercatat</small></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber">⚖️</div>
+          <div class="stat-info"><p>Total Hasil</p><h3 id="statKg">0 kg</h3><small>bawang dipanen</small></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">💬</div>
+          <div class="stat-info"><p>Konsultasi</p><h3 id="statKonsul">0</h3><small>pertanyaan tercatat</small></div>
+        </div>
+      </div>
+      <!-- Recent table -->
+      <div class="sec-header"><div class="sec-icon"><i class="fa-solid fa-clock-rotate-left"></i></div><h2>Aktivitas Terkini</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aktivitas</th><th>Tanggal</th><th>Keterangan</th><th>Status</th></tr></thead>
+          <tbody id="recentTable"><tr><td colspan="4" style="text-align:center;padding:28px;color:#999">Belum ada aktivitas</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- BUDIDAYA -->
+    <section class="section" id="sec-budidaya">
+      <div class="sec-header"><div class="sec-icon"><i class="fa-solid fa-book-open"></i></div><h2>Informasi Budidaya Bawang Merah</h2></div>
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-card-img">🌱</div>
+          <div class="info-card-body">
+            <span class="info-card-tag">Persiapan</span>
+            <h3>Pemilihan Bibit Unggul</h3>
+            <p>Pilih umbi sehat berukuran 5–10 g, bebas hama penyakit. Varietas Bima Brebes & Super Philip direkomendasikan untuk hasil optimal.</p>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-img" style="background:linear-gradient(135deg,#2d6a4f,#52b788)">🌿</div>
+          <div class="info-card-body">
+            <span class="info-card-tag">Penanaman</span>
+            <h3>Teknik Tanam Benar</h3>
+            <p>Tanam umbi dengan ujung tunas ke atas, kedalaman 3–5 cm. Jarak tanam ideal 15×20 cm untuk sirkulasi udara optimal.</p>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-img" style="background:linear-gradient(135deg,#1a6b3c,#27ae60)">💧</div>
+          <div class="info-card-body">
+            <span class="info-card-tag">Irigasi</span>
+            <h3>Pengairan yang Tepat</h3>
+            <p>Siram 2× sehari pada awal tanam. Kurangi penyiraman 2 minggu sebelum panen untuk meningkatkan kadar padatan umbi.</p>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-img" style="background:linear-gradient(135deg,#e67e22,#f39c12)">☀️</div>
+          <div class="info-card-body">
+            <span class="info-card-tag">Kondisi Tumbuh</span>
+            <h3>Syarat Tumbuh Optimal</h3>
+            <p>Suhu ideal 25–32°C, curah hujan 300–2500 mm/tahun, ketinggian 0–900 mdpl. pH tanah optimal 5.6–7.0.</p>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-img" style="background:linear-gradient(135deg,#8b1e3f,#c0392b)">🌾</div>
+          <div class="info-card-body">
+            <span class="info-card-tag">Panen</span>
+            <h3>Waktu dan Cara Panen</h3>
+            <p>Panen pada umur 60–70 hari. Ciri siap panen: 60–70% daun rebah, warna umbi merah terang. Panen pagi hari saat cuaca cerah.</p>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-img" style="background:linear-gradient(135deg,#2c3e50,#34495e)">📦</div>
+          <div class="info-card-body">
+            <span class="info-card-tag">Pasca Panen</span>
+            <h3>Penyimpanan & Penanganan</h3>
+            <p>Jemur 7–14 hari sebelum simpan. Simpan dalam gudang berventilasi dengan suhu 25–30°C dan kelembaban 60–80%.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LAHAN -->
+    <section class="section" id="sec-lahan">
+      <div class="sec-header"><div class="sec-icon"><i class="fa-solid fa-map-location-dot"></i></div><h2>Input Data Lahan</h2></div>
+      <div class="form-container">
+        <form id="lahanForm" onsubmit="simpanLahan(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nama Lahan / Petak</label>
+              <input type="text" id="namaLahan" placeholder="Contoh: Sawah Barat" required/>
+            </div>
+            <div class="form-group">
+              <label>Luas Lahan (are)</label>
+              <input type="number" id="luasLahan" placeholder="Contoh: 25" required/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Lokasi / Desa</label>
+              <input type="text" id="lokasiLahan" placeholder="Contoh: Desa Tirtajaya" required/>
+            </div>
+            <div class="form-group">
+              <label>Jenis Tanah</label>
+              <select id="jenisTanah">
+                <option value="">Pilih jenis tanah</option>
+                <option>Lempung Berpasir</option>
+                <option>Lempung</option>
+                <option>Pasir Berlempung</option>
+                <option>Liat Berpasir</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Varietas Bawang</label>
+              <select id="varietas">
+                <option value="">Pilih varietas</option>
+                <option>Bima Brebes</option>
+                <option>Super Philip</option>
+                <option>Bauji</option>
+                <option>Tajuk</option>
+                <option>Ilokos</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Tanggal Tanam</label>
+              <input type="date" id="tglTanam" required/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Catatan Tambahan</label>
+            <textarea id="catatanLahan" placeholder="Kondisi lahan, riwayat tanam, dll..."></textarea>
+          </div>
+          <button type="submit" class="btn-submit"><i class="fa-solid fa-floppy-disk"></i> Simpan Data Lahan</button>
+        </form>
+      </div>
+      <div style="margin-top:28px">
+        <div class="sec-header"><div class="sec-icon"><i class="fa-solid fa-list"></i></div><h2>Data Lahan Tersimpan</h2></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nama Lahan</th><th>Luas</th><th>Lokasi</th><th>Varietas</th><th>Tgl Tanam</th><th>Aksi</th></tr></thead>
+            <tbody id="lahanTable"><tr><td colspan="6" style="text-align:center;padding:28px;color:#999">Belum ada data lahan</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEN -->
+    <section class="section" id="sec-panen">
+      <div class="sec-header"><div class="sec-icon"><i class="fa-solid fa-basket-shopping"></i></div><h2>Catat Hasil Panen</h2></div>
+      <div class="form-container">
+        <form id="panenForm" onsubmit="simpanPanen(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Pilih Lahan</label>
+              <select id="panenLahan" required>
+                <option value="">Pilih lahan</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Tanggal Panen</label>
+              <input type="date" id="tglPanen" required/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Hasil Panen (kg)</label>
+              <input type="number" id="hasilPanen" placeholder="Contoh: 500" required/>
+            </div>
+            <div class="form-group">
+              <label>Harga Jual (Rp/kg)</label>
+              <input type="number" id="hargaJual" placeholder="Contoh: 18000"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Kualitas Panen</label>
+              <select id="kualitasPanen">
+                <option>Sangat Baik</option>
+                <option>Baik</option>
+                <option>Cukup</option>
+                <option>Kurang</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Pembeli / Tujuan</label>
+              <input type="text" id="pembeli" placeholder="Contoh: Pasar Induk Kramat Jati"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Kendala / Catatan</label>
+            <textarea id="catatanPanen" placeholder="Serangan hama, cuaca, masalah lain..."></textarea>
+          </div>
+          <button type="submit" class="btn-submit"><i class="fa-solid fa-floppy-disk"></i> Simpan Hasil Panen</button>
+        </form>
+      </div>
+      <div style="margin-top:28px">
+        <div class="sec-header"><div class="sec-icon"><i class="fa-solid fa-table"></i></div><h2>Riwayat Panen</h2></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Lahan</th><th>Tgl Panen</th><th>Hasil (kg)</th><th>Harga/kg</th><th>Kualitas</th><th>Aksi</th></tr></thead>
+            <tbody id="panenTable"><tr><td colspan="6" style="text-align:center;padding:28px;color:#999">Belum ada data panen</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PUPUK & HAMA -->
+    <section class="section" id="sec-pupuk">
+      <div class="sec-header"><div class="sec-icon"><i class="fa-solid fa-flask"></i></div><h2>Informasi Pupuk & Pengendalian Hama</h2></div>
+      <div style="margin-bottom:24px">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;color:var(--g1)">🌿 Rekomendasi Pupuk</h3>
+        <div class="pupuk-grid">
+          <div class="pupuk-card">
+            <div class="pupuk-icon" style="background:linear-gradient(135deg,#d4f4df,#a8e6bb)">🌱</div>
+            <div>
+              <h3>Pupuk Urea (N)</h3>
+              <p>Mendorong pertumbuhan daun dan batang. Aplikasi saat 7, 21, dan 35 hari setelah tanam.</p>
+              <span class="dosage">200 kg/ha</span>
+            </div>
+          </div>
+          <div class="pupuk-card">
+            <div class="pupuk-icon" style="background:linear-gradient(135deg,#fff3cd,#ffeaa7)">💛</div>
+            <div>
+              <h3>Pupuk TSP/SP-36 (P)</h3>
+              <p>Merangsang pembentukan umbi dan akar kuat. Diberikan saat pengolahan tanah.</p>
+              <span class="dosage">100–150 kg/ha</span>
+            </div>
+          </div>
+          <div class="pupuk-card">
+            <div class="pupuk-icon" style="background:linear-gradient(135deg,#dff0ff,#b3d9ff)">🔵</div>
+            <div>
+              <h3>Pupuk KCl (K)</h3>
+              <p>Meningkatkan kualitas umbi, ketahanan penyakit, dan daya simpan bawang merah.</p>
+              <span class="dosage">100 kg/ha</span>
+            </div>
+          </div>
+          <div class="pupuk-card">
+            <div class="pupuk-icon" style="background:linear-gradient(135deg,#e8d5c4,#d4a574)">🤎</div>
+            <div>
+              <h3>Pupuk Kandang / Organik</h3>
+              <p>Memperbaiki struktur tanah dan menyediakan unsur hara mikro. Aplikasi 2 minggu sebelum tanam.</p>
+              <span class="dosage">10–15 ton/ha</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;color:#c0392b">🐛 Pengendalian Hama & Penyakit</h3>
+        <div class="pupuk-grid">
+          <div class="pupuk-card">
+            <div class="pupuk-icon" style="background:linear-gradient(135deg,#ffd4d4,#ffaaa5)">🦟</div>
+            <div>
+              <h3>Ulat Bawang (Spodoptera)</h3>
+              <p>Gejala: daun berlubang, tanaman layu. Pengendalian: semprot insektisida Deltamethrin 25 EC, rotasi tanaman.</p>
+              <span class="dosage" style="background:#ffe0e0;color:#c0392b">Kritis</span>
+            </div>
+          </div>
+          <div class="pupuk-card">
+            <div class="pupuk-icon" style="background:linear-gradient(135deg,#ffe8c2,#ffd08a)">🍄</div>
+            <div>
+              <h3>Penyakit Moler (Fusarium)</h3>
+              <p>Gejala: daun melingkar, umbi busuk. Rendam bibit dalam Fungisida Mankozeb 80 WP sebelum tanam.</p>
+              <span class="dosage" style="background:#fff3e0;color:#e67e22">Waspada</span>
+            </div>
+          </div>
+          <div class="pupuk-card">
+            <div class="pupuk-icon" style="background:linear-gradient(135deg,#e8f4fd,#a9d3ff)">💧</div>
+            <div>
+              <h3>Embun Bulu (Peronospora)</h3>
+              <p>Gejala: bercak ungu di daun, daun mengering. Semprot Fungisida Metalaksil tiap 7–10 hari.</p>
+              <span class="dosage" style="background:#e8f4fd;color:#2980b9">Sedang</span>
+            </div>
+          </div>
+          <div class="pupuk-card">
+            <div class="pupuk-icon" style="background:linear-gradient(135deg,#f0ffe8,#c8f7b0)">🌿</div>
+            <div>
+              <h3>Trips (Thrips tabaci)</h3>
+              <p>Gejala: daun bercak perak, pertumbuhan terhambat. Semprot Abamektin 18 EC, pasang perangkap kuning.</p>
+              <span class="dosage">Umum</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- KONSULTASI -->
+    <section class="section" id="sec-konsultasi">
+      <div class="sec-header"><div class="sec-icon"><i class="fa-solid fa-comments"></i></div><h2>Konsultasi Pertanian</h2></div>
+      <div class="chat-container">
+        <div class="chat-header">
+          <div class="bot-avatar">🤖</div>
+          <div><h3>Asisten SiBawang</h3><p>Tanyakan masalah budidaya bawang merahmu</p></div>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+          <div class="msg bot">
+            <div class="msg-avatar">🧅</div>
+            <div class="msg-bubble">Halo! Saya asisten pertanian SiBawang. Silahkan tanyakan seputar budidaya bawang merah — pupuk, hama, penyakit, waktu tanam, atau pertanyaan lainnya. Saya siap membantu! 🌱</div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <input class="chat-input" id="chatInput" type="text" placeholder="Ketik pertanyaan Anda..." onkeydown="if(event.key==='Enter')kirimChat()"/>
+          <button class="chat-send" onclick="kirimChat()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /content -->
+</main>
+
+<script>
+// ── Auth check ──
+const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+if (!currentUser) { window.location.href = 'daftar.html'; }
+else {
+  document.getElementById('welcomeName').textContent = currentUser.name || 'Petani';
+  document.getElementById('sidebarName').textContent = currentUser.name || 'Petani';
+  document.getElementById('sidebarEmail').textContent = currentUser.email || '';
+  document.getElementById('avatarInitial').textContent = (currentUser.name||'P')[0].toUpperCase();
+}
+
+// ── Date ──
+const d = new Date();
+document.getElementById('dateDisplay').textContent = d.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+// ── Section toggle ──
+const sectionTitles = {dashboard:'Dashboard',budidaya:'Informasi Budidaya',lahan:'Input Data Lahan',panen:'Catat Hasil Panen',pupuk:'Pupuk & Hama',konsultasi:'Konsultasi'};
+const sectionSubs = {dashboard:'Ringkasan aktivitas ladang Anda',budidaya:'Panduan teknis budidaya bawang merah',lahan:'Kelola data lahan pertanian Anda',panen:'Catat dan pantau hasil panen',pupuk:'Referensi pupuk dan pengendalian hama',konsultasi:'Tanyakan masalah budidaya Anda'};
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  document.getElementById('topbarTitle').textContent = sectionTitles[id];
+  document.getElementById('topbarSub').textContent = sectionSubs[id];
+  if (id === 'panen') loadLahanOptions();
+  if (id === 'dashboard') updateDashboard();
+}
+
+// ── Storage helpers ──
+const uid = () => currentUser ? currentUser.id : 'guest';
+function getLahan() { return JSON.parse(localStorage.getItem('lahan_'+uid())) || []; }
+function getPanen() { return JSON.parse(localStorage.getItem('panen_'+uid())) || []; }
+function getKonsul() { return JSON.parse(localStorage.getItem('konsul_'+uid())) || []; }
+
+// ── Lahan ──
+function simpanLahan(e) {
+  e.preventDefault();
+  const data = { id: Date.now(), nama: document.getElementById('namaLahan').value, luas: document.getElementById('luasLahan').value, lokasi: document.getElementById('lokasiLahan').value, tanah: document.getElementById('jenisTanah').value, varietas: document.getElementById('varietas').value, tgl: document.getElementById('tglTanam').value, catatan: document.getElementById('catatanLahan').value };
+  const arr = getLahan(); arr.push(data);
+  localStorage.setItem('lahan_'+uid(), JSON.stringify(arr));
+  renderLahan(); addActivity('Tambah Lahan', data.nama, 'Lahan baru ditambahkan');
+  e.target.reset(); showToast('Data lahan berhasil disimpan!');
+}
+function hapusLahan(id) {
+  if (!confirm('Hapus data lahan ini?')) return;
+  localStorage.setItem('lahan_'+uid(), JSON.stringify(getLahan().filter(x=>x.id!=id)));
+  renderLahan();
+}
+function renderLahan() {
+  const arr = getLahan(); const tb = document.getElementById('lahanTable');
+  if (!arr.length) { tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:28px;color:#999">Belum ada data lahan</td></tr>'; return; }
+  tb.innerHTML = arr.map(x=>`<tr><td><strong>${x.nama}</strong></td><td>${x.luas} are</td><td>${x.lokasi}</td><td>${x.varietas||'-'}</td><td>${x.tgl||'-'}</td><td><button onclick="hapusLahan(${x.id})" style="background:#fee2e2;color:#c0392b;border:none;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('');
+}
+
+// ── Panen ──
+function loadLahanOptions() {
+  const arr = getLahan(); const sel = document.getElementById('panenLahan');
+  sel.innerHTML='<option value="">Pilih lahan</option>'+arr.map(x=>`<option value="${x.nama}">${x.nama}</option>`).join('');
+}
+function simpanPanen(e) {
+  e.preventDefault();
+  const data = { id: Date.now(), lahan: document.getElementById('panenLahan').value, tgl: document.getElementById('tglPanen').value, hasil: document.getElementById('hasilPanen').value, harga: document.getElementById('hargaJual').value, kualitas: document.getElementById('kualitasPanen').value, pembeli: document.getElementById('pembeli').value, catatan: document.getElementById('catatanPanen').value };
+  const arr = getPanen(); arr.push(data);
+  localStorage.setItem('panen_'+uid(), JSON.stringify(arr));
+  renderPanen(); addActivity('Catat Panen', data.lahan, data.hasil+' kg dipanen');
+  e.target.reset(); showToast('Hasil panen berhasil dicatat!');
+}
+function hapusPanen(id) {
+  if (!confirm('Hapus data panen ini?')) return;
+  localStorage.setItem('panen_'+uid(), JSON.stringify(getPanen().filter(x=>x.id!=id)));
+  renderPanen();
+}
+function renderPanen() {
+  const arr = getPanen(); const tb = document.getElementById('panenTable');
+  if (!arr.length) { tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:28px;color:#999">Belum ada data panen</td></tr>'; return; }
+  const kualColor = {Baik:'ok','Sangat Baik':'ok',Cukup:'warn',Kurang:'warn'};
+  tb.innerHTML = arr.map(x=>`<tr><td><strong>${x.lahan}</strong></td><td>${x.tgl||'-'}</td><td>${Number(x.hasil).toLocaleString('id-ID')} kg</td><td>${x.harga?'Rp '+Number(x.harga).toLocaleString('id-ID'):'-'}</td><td><span class="badge-status ${kualColor[x.kualitas]||'ok'}">${x.kualitas}</span></td><td><button onclick="hapusPanen(${x.id})" style="background:#fee2e2;color:#c0392b;border:none;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('');
+}
+
+// ── Activity log ──
+function addActivity(tipe, nama, ket) {
+  const log = JSON.parse(localStorage.getItem('activity_'+uid())) || [];
+  log.unshift({tipe, nama, ket, tgl: new Date().toLocaleDateString('id-ID'), status:'ok'});
+  if (log.length > 20) log.pop();
+  localStorage.setItem('activity_'+uid(), JSON.stringify(log));
+}
+function updateDashboard() {
+  const lahan = getLahan(); const panen = getPanen(); const konsul = getKonsul();
+  document.getElementById('statLahan').textContent = lahan.length;
+  document.getElementById('statPanen').textContent = panen.length;
+  const totalKg = panen.reduce((s,x) => s + Number(x.hasil||0), 0);
+  document.getElementById('statKg').textContent = totalKg.toLocaleString('id-ID')+' kg';
+  document.getElementById('statKonsul').textContent = konsul.length;
+  const log = JSON.parse(localStorage.getItem('activity_'+uid())) || [];
+  const tb = document.getElementById('recentTable');
+  if (!log.length) { tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:28px;color:#999">Belum ada aktivitas</td></tr>'; return; }
+  tb.innerHTML = log.slice(0,8).map(x=>`<tr><td><strong>${x.tipe}</strong></td><td>${x.tgl}</td><td>${x.ket}</td><td><span class="badge-status ok">Tersimpan</span></td></tr>`).join('');
+}
+
+// ── Chat konsultasi ──
+const faq = [
+  {q:['hama','ulat','trips','serangga'],a:'Untuk pengendalian hama, semprot insektisida Deltamethrin 25 EC untuk ulat bawang, atau Abamektin 18 EC untuk trips. Lakukan penyemprotan pagi/sore hari dan rotasi insektisida agar tidak terjadi resistensi. 🐛'},
+  {q:['pupuk','urea','tsp','kcl','pemupukan'],a:'Rekomendasi pemupukan: Urea 200 kg/ha (3× aplikasi), TSP 100–150 kg/ha (saat olah tanah), KCl 100 kg/ha. Pupuk organik 10–15 ton/ha sebelum tanam sangat direkomendasikan. 🌿'},
+  {q:['panen','waktu panen','umur','siap panen'],a:'Bawang merah siap dipanen pada umur 60–70 hari setelah tanam. Cirinya: 60–70% daun sudah rebah, warna umbi merah cerah. Panen di pagi hari saat cuaca cerah untuk kualitas terbaik. 🧅'},
+  {q:['penyakit','moler','fusarium','busuk'],a:'Penyakit Moler (Fusarium) ditandai daun melingkar dan umbi busuk. Pencegahan: rendam bibit dalam fungisida Mankozeb 80 WP sebelum tanam, perbaiki drainase lahan, hindari kelembaban berlebih. 🍄'},
+  {q:['air','irigasi','siram','kering'],a:'Siram 2× sehari (pagi dan sore) pada 2 minggu pertama. Frekuensi dikurangi pada fase pertumbuhan umbi. Hentikan penyiraman 2 minggu sebelum panen untuk memaksimalkan kualitas umbi. 💧'},
+  {q:['bibit','benih','varietas','pilih'],a:'Pilih bibit umbi sehat berukuran 5–10 g, bebas hama/penyakit. Varietas unggulan: Bima Brebes (produktif, adaptif luas), Super Philip (umbi besar), Bauji (cocok dataran tinggi). 🌱'},
+];
+async function kirimChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  addMsg('user', msg); input.value = '';
+
+  // Simpan konsultasi
+  const konsul = getKonsul(); konsul.push({pertanyaan: msg, tgl: new Date().toLocaleDateString('id-ID')});
+  localStorage.setItem('konsul_'+uid(), JSON.stringify(konsul));
+
+  setTimeout(() => {
+    const lower = msg.toLowerCase();
+    const found = faq.find(f => f.q.some(k => lower.includes(k)));
+    const reply = found ? found.a : 'Terima kasih atas pertanyaannya! Untuk informasi lebih lanjut mengenai "'+msg+'", saya sarankan konsultasikan dengan penyuluh pertanian setempat atau kunjungi Balai Penyuluhan Pertanian (BPP) di daerah Anda. 🌾';
+    addMsg('bot', reply);
+  }, 800);
+}
+function addMsg(role, text) {
+  const box = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'msg '+role;
+  div.innerHTML = `<div class="msg-avatar">${role==='bot'?'🧅':'👨‍🌾'}</div><div class="msg-bubble">${text}</div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+// ── Toast ──
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  Object.assign(t.style,{position:'fixed',bottom:'28px',right:'28px',background:'#1a6b3c',color:'#fff',padding:'12px 22px',borderRadius:'10px',fontSize:'13px',fontWeight:'600',zIndex:'9999',boxShadow:'0 4px 18px rgba(26,107,60,.35)',opacity:'0',transition:'opacity .3s'});
+  document.body.appendChild(t);
+  requestAnimationFrame(()=>t.style.opacity='1');
+  setTimeout(()=>{t.style.opacity='0'; setTimeout(()=>t.remove(),300)},2800);
+}
+
+// ── Logout ──
+function logout() {
+  if (confirm('Yakin ingin keluar?')) { localStorage.removeItem('currentUser'); window.location.href='index.html'; }
+}
+
+// ── Init ──
+renderLahan(); renderPanen(); updateDashboard();
+</script>
+</body>
+</html>
