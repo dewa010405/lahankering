@@ -81,8 +81,19 @@
     .nav-item.active{background:linear-gradient(135deg,rgba(59,130,246,.2),rgba(14,165,233,.1));color:#fff;font-weight:600}
     .nav-item.active i{color:#60a5fa}
     .sidebar-footer{padding:14px 22px;border-top:1px solid rgba(255,255,255,.08)}
-    .btn-logout{display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;border-radius:8px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:rgba(252,165,165,.85);font-size:12.5px;font-weight:500;cursor:pointer;transition:all .25s}
-    .btn-logout:hover{background:rgba(239,68,68,.22);color:#fff}
+    .btn-logout{
+      display:flex;align-items:center;justify-content:center;gap:10px;
+      width:100%;padding:12px 14px;border-radius:10px;
+      background:#dc2626;border:none;
+      color:#fff;font-size:15px;font-weight:700;
+      cursor:pointer;transition:all .25s;
+      box-shadow:0 2px 8px rgba(220,38,38,.3);
+    }
+    .btn-logout:hover{
+      background:#b91c1c;transform:translateY(-2px);
+      box-shadow:0 6px 16px rgba(220,38,38,.4);
+    }
+    .btn-logout i{font-size:16px;color:#fff;}
 
     /* ── Main ── */
     .main{margin-left:var(--sidebar);min-height:100vh;display:flex;flex-direction:column}
@@ -197,7 +208,7 @@
     <button class="nav-item" data-sec="sistem" onclick="showSec('sistem',this)"><i class="fa-solid fa-gear"></i> Kelola Sistem</button>
   </nav>
   <div class="sidebar-footer">
-    <button class="btn-logout" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
+    <button class="btn-logout" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket"></i> Log Out</button>
   </div>
 </aside>
 
@@ -230,8 +241,10 @@
       </div>
       <div class="sec-header"><div class="sec-header-left"><div class="sec-icon"><i class="fa-solid fa-users"></i></div><h2 style="font-size:17px;font-weight:700">Petani Terdaftar</h2></div></div>
       <div class="table-wrap">
-        <table><thead><tr><th>Nama</th><th>Email</th><th>Tgl Daftar</th><th>Lahan</th><th>Panen</th><th>Status</th></tr></thead>
-        <tbody id="dashUserTable"><tr><td colspan="6" style="text-align:center;padding:24px;color:#999">Tidak ada pengguna</td></tr></tbody></table>
+        <table>
+          <thead><tr><th>Nama</th><th>Email</th><th>Tgl Daftar</th><th>Lahan</th><th>Panen</th><th>Status</th></tr></thead>
+          <tbody id="dashUserTable"><tr><td colspan="6" style="text-align:center;padding:24px;color:#999">Tidak ada pengguna</td></tr></tbody>
+        </table>
       </div>
     </section>
 
@@ -242,8 +255,10 @@
         <button class="btn-primary" onclick="openModalTambahUser()"><i class="fa-solid fa-plus"></i> Tambah Petani</button>
       </div>
       <div class="table-wrap">
-        <table><thead><tr><th>ID</th><th>Nama</th><th>Email</th><th>Password</th><th>Lahan</th><th>Panen</th><th>Aksi</th></tr></thead>
-        <tbody id="userTable"><tr><td colspan="7" style="text-align:center;padding:24px;color:#999">Tidak ada pengguna</td></tr></tbody></table>
+        <table>
+          <thead><tr><th>ID</th><th>Nama</th><th>Email</th><th>Password</th><th>Lahan</th><th>Panen</th><th>Aksi</th></tr></thead>
+          <tbody id="userTable"><tr><td colspan="7" style="text-align:center;padding:24px;color:#999">Tidak ada pengguna</td></tr></tbody>
+        </table>
       </div>
     </section>
 
@@ -254,8 +269,10 @@
         <button class="btn-primary" onclick="openModalBudidaya()"><i class="fa-solid fa-plus"></i> Tambah Artikel</button>
       </div>
       <div class="table-wrap">
-        <table><thead><tr><th>Judul</th><th>Kategori</th><th>Tgl Dibuat</th><th>Status</th><th>Aksi</th></tr></thead>
-        <tbody id="budidayaTable"></tbody></table>
+        <table>
+          <thead><tr><th>Judul</th><th>Kategori</th><th>Tgl Dibuat</th><th>Status</th><th>Aksi</th></tr></thead>
+          <tbody id="budidayaTable"></tbody>
+        </table>
       </div>
     </section>
 
@@ -265,13 +282,17 @@
       <div class="summary-row" id="lahanSummary"></div>
       <h3 style="font-size:15px;font-weight:700;margin-bottom:12px">📍 Semua Data Lahan</h3>
       <div class="table-wrap">
-        <table><thead><tr><th>Petani</th><th>Nama Lahan</th><th>Luas (are)</th><th>Lokasi</th><th>Varietas</th><th>Tgl Tanam</th></tr></thead>
-        <tbody id="allLahanTable"><tr><td colspan="6" style="text-align:center;padding:24px;color:#999">Belum ada data</td></tr></tbody></table>
+        <table>
+          <thead><tr><th>Petani</th><th>Nama Lahan</th><th>Luas (are)</th><th>Lokasi</th><th>Varietas</th><th>Tgl Tanam</th></tr></thead>
+          <tbody id="allLahanTable"><tr><td colspan="6" style="text-align:center;padding:24px;color:#999">Belum ada data</td></tr></tbody>
+        </table>
       </div>
       <h3 style="font-size:15px;font-weight:700;margin:20px 0 12px">🧅 Semua Data Panen</h3>
       <div class="table-wrap">
-        <table><thead><tr><th>Petani</th><th>Lahan</th><th>Tgl Panen</th><th>Hasil (kg)</th><th>Harga/kg</th><th>Kualitas</th></tr></thead>
-        <tbody id="allPanenTable"><tr><td colspan="6" style="text-align:center;padding:24px;color:#999">Belum ada data</td></tr></tbody></table>
+        <table>
+          <thead><tr><th>Petani</th><th>Lahan</th><th>Tgl Panen</th><th>Hasil (kg)</th><th>Harga/kg</th><th>Kualitas</th></tr></thead>
+          <tbody id="allPanenTable"><tr><td colspan="6" style="text-align:center;padding:24px;color:#999">Belum ada data</td></tr></tbody>
+        </table>
       </div>
     </section>
 
@@ -279,8 +300,10 @@
     <section class="section" id="sec-konsultasi">
       <div class="sec-header"><div class="sec-header-left"><div class="sec-icon"><i class="fa-solid fa-comments"></i></div><h2 style="font-size:17px;font-weight:700">Kelola Konsultasi Petani</h2></div></div>
       <div class="table-wrap">
-        <table><thead><tr><th>Petani</th><th>Pertanyaan</th><th>Tanggal</th><th>Status</th></tr></thead>
-        <tbody id="konsulTable"><tr><td colspan="4" style="text-align:center;padding:24px;color:#999">Belum ada konsultasi</td></tr></tbody></table>
+        <table>
+          <thead><tr><th>Petani</th><th>Pertanyaan</th><th>Tanggal</th><th>Status</th></tr></thead>
+          <tbody id="konsulTable"><tr><td colspan="4" style="text-align:center;padding:24px;color:#999">Belum ada konsultasi</td></tr></tbody>
+        </table>
       </div>
     </section>
 
@@ -419,7 +442,8 @@ function initAdmin() {
   const tb = document.getElementById('dashUserTable');
   if (!users.length) { tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:#999">Tidak ada pengguna terdaftar</td></tr>'; return; }
   tb.innerHTML = users.map(u=>`<tr>
-    <td><strong>${u.name}</strong></td><td>${u.email}</td>
+    <td><strong>${u.name}</strong></td>
+    <td>${u.email}</td>
     <td>${new Date(u.id).toLocaleDateString('id-ID')}</td>
     <td>${getUserLahan(u.id).length}</td>
     <td>${getUserPanen(u.id).length}</td>
@@ -435,7 +459,8 @@ function renderUsers() {
   if (!users.length) { tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;color:#999">Tidak ada pengguna</td></tr>'; return; }
   tb.innerHTML = users.map(u=>`<tr>
     <td style="font-size:11px;color:#999">#${String(u.id).slice(-4)}</td>
-    <td><strong>${u.name}</strong></td><td>${u.email}</td>
+    <td><strong>${u.name}</strong></td>
+    <td>${u.email}</td>
     <td><span style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:11px">••••••</span></td>
     <td>${getUserLahan(u.id).length} petak</td>
     <td>${getUserPanen(u.id).length} entri</td>
@@ -520,9 +545,23 @@ function renderAllData() {
     <div class="summary-card"><h4>Total Produksi</h4><p style="color:var(--amber)">${totalKg.toLocaleString('id-ID')} kg</p></div>
   `;
   const tl = document.getElementById('allLahanTable');
-  tl.innerHTML = allLahan.length ? allLahan.map(l=>`<tr><td>${l.petani}</td><td><strong>${l.nama}</strong></td><td>${l.luas}</td><td>${l.lokasi}</td><td>${l.varietas||'-'}</td><td>${l.tgl||'-'}</td></tr>`).join('') : '<tr><td colspan="6" style="text-align:center;padding:24px;color:#999">Belum ada data lahan</td></tr>';
+  tl.innerHTML = allLahan.length ? allLahan.map(l=>`<tr>
+    <td>${l.petani}</td>
+    <td><strong>${l.nama}</strong></td>
+    <td>${l.luas}</td>
+    <td>${l.lokasi}</td>
+    <td>${l.varietas||'-'}</td>
+    <td>${l.tgl||'-'}</td>
+  </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;padding:24px;color:#999">Belum ada data lahan</td></tr>';
   const tp = document.getElementById('allPanenTable');
-  tp.innerHTML = allPanen.length ? allPanen.map(p=>`<tr><td>${p.petani}</td><td>${p.lahan}</td><td>${p.tgl||'-'}</td><td><strong>${Number(p.hasil||0).toLocaleString('id-ID')} kg</strong></td><td>${p.harga?'Rp '+Number(p.harga).toLocaleString('id-ID'):'-'}</td><td>${p.kualitas}</td></tr>`).join('') : '<tr><td colspan="6" style="text-align:center;padding:24px;color:#999">Belum ada data panen</td></tr>';
+  tp.innerHTML = allPanen.length ? allPanen.map(p=>`<tr>
+    <td>${p.petani}</td>
+    <td>${p.lahan}</td>
+    <td>${p.tgl||'-'}</td>
+    <td><strong>${Number(p.hasil||0).toLocaleString('id-ID')} kg</strong></td>
+    <td>${p.harga?'Rp '+Number(p.harga).toLocaleString('id-ID'):'-'}</td>
+    <td>${p.kualitas}</td>
+  </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;padding:24px;color:#999">Belum ada data panen</td></tr>';
 }
 
 // ── Konsultasi ──
@@ -534,7 +573,12 @@ function renderKonsultasi() {
   });
   const tb = document.getElementById('konsulTable');
   if (!rows.length) { tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:#999">Belum ada konsultasi</td></tr>'; return; }
-  tb.innerHTML = rows.map(k=>`<tr><td><strong>${k.petani}</strong></td><td>${k.pertanyaan}</td><td>${k.tgl||'-'}</td><td><span class="badge green">Terjawab</span></td></tr>`).join('');
+  tb.innerHTML = rows.map(k=>`<tr>
+    <td><strong>${k.petani}</strong></td>
+    <td>${k.pertanyaan}</td>
+    <td>${k.tgl||'-'}</td>
+    <td><span class="badge green">Terjawab</span></td>
+  </tr>`).join('');
 }
 
 // ── Sistem ──
